@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/css/styles.css">
+  </head>
+  <body>
+    <div id="sidebar">
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+      <div class="sidebarCoin">
+        <div class="sidebarPrice"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+        <div class="sidebarPricePercent"></div>
+      </div>
+    </div>
+    <div id="sidebarPagination" page="1">
+      <div class="pageSelector">«</div>
+      <div class="pageSelector">‹</div>
+      <div class="pageSelector"></div>
+      <div class="pageSelector view"></div>
+      <div class="pageSelector"></div>
+      <div class="pageSelector">›</div>
+      <div class="pageSelector">»</div>
+    </div>
+    <div id="main">
+      <div id="mainTitle"></div>
+      <div id="assetView">
+        <div id="mainPercent"></div>
+        <div id="graph">
+          <div id="graphSelector">
+            <div id="graph24h" class="graphSelector">24h</div>
+            <div id="graph7d" class="graphSelector">7d</div>
+            <div id="graph30d" class="graphSelector">30d</div>
+            <div id="graph90d" class="graphSelector">90d</div>
+            <div id="graphMax" class="graphSelector">Max</div>
+          </div>
+          <div id="graphElement"></div>
+          <div id="mainAsset">
+            <div id="balance"></div>
+            <div id="assetMenu">
+              <br>
+              <input type="number" id="tradeActionText" class="text-input" min="0" placeholder="amount">
+              <div id="currencySelect">
+                <label><input type="radio" name="actionCurrency" value="true" checked> USD</label>
+                <label><input type="radio" name="actionCurrency" value=""> Crypto</label>
+              </div>
+              <button type="button" id="buy" class="button" onclick="trade()">Buy</button>
+              <button type="button" id="sell" class="button" onclick="trade(true)">Sell</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="inventoryView"></div>
+      <button type="button" id="loadInventory" class="button" onclick="loadInventory()">My Assets</button>
+    </div>
+    <div id="save" class="save-container">
+      <input type="text" id="save-input" class="text-input" placeholder="account token">
+      <button type="submit" id="save-submit" class="button">Save</button>
+    </div>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="/scripts/page.js"></script>
+  </body>
+</html>
