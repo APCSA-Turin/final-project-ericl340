@@ -23,9 +23,9 @@ function buy(res, session, body) {
         let cost = reqData.amount * price
         if (reqData.amount > 0 && data.balance >= cost) {
             if (!data.assets[reqData.assetID]) {
-                data.assets[reqData.assetID] = 0
+                data.assets[reqData.assetID] = [...global.assets[0][reqData.assetID].slice(0, -2), 0]
             }
-            data.assets[reqData.assetID] += reqData.amount
+            data.assets[reqData.assetID][2] += reqData.amount
             data.balance -= cost
             fs.writeFileSync(filePath, JSON.stringify(data))
             res.end('{"success":true}')

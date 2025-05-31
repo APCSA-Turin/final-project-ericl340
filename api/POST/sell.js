@@ -19,10 +19,10 @@ function sell(res, session, body) {
             res.statusCode = 400;
             res.end('{"error":true}')
         }
-        if (data.assets[reqData.assetID] >= reqData.amount) {
+        if (data.assets[reqData.assetID][2] >= reqData.amount) {
             let price = global.apiCache.price[global.assets[0][reqData.assetID][2]]
             let cost = reqData.amount * price
-            data.assets[reqData.assetID] -= reqData.amount
+            data.assets[reqData.assetID][2] -= reqData.amount
             data.balance += cost
             fs.writeFileSync(filePath, JSON.stringify(data))
             res.end('{"success":true}')
