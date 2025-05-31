@@ -18,6 +18,12 @@
   white-space: pre-wrap;
   height: 10%;
 }
+#inventoryTitle {
+  font-size: 4vh;
+  text-align: center;
+  white-space: pre-wrap;
+  height: 10%;
+}
 #assetView {
   display: flex;
   justify-content: center;

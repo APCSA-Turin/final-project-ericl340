@@ -89,7 +89,7 @@ var currentPage
 async function updatePage(id, name, ticker) {
     currentPage = Array.from(arguments)
     let price = await (await sfetch('api/getPrice?id=' + id, "GET")).text()
-    document.getElementById('mainTitle').textContent = name + '/' + ticker + '\n$' + price
+    document.getElementById('mainTitle').textContent = name + '/' + ticker + '\n$' + cma(price)
     let inventoryContent = document.getElementById('inventoryView')
     let assetContent = document.getElementById('assetView')
     inventoryContent.style.display = 'none'
@@ -100,20 +100,47 @@ async function updatePage(id, name, ticker) {
     updateSidebar(sidebarPage)
     let balance = document.getElementById('balance')
     let inventory = await (await sfetch('api/getInventory', "GET")).json()
-    let amt = inventory.assets[id] ?? 0
+    let amt = inventory.assets[id]?.[2] ?? 0
     balance.textContent = 'Your Balance: $' + cma(inventory.balance)
     let assetMenu = document.getElementById('assetMenu')
-    assetMenu.childNodes[0].textContent = `${amt} ${ticker} ($${price * amt})`
+    assetMenu.childNodes[0].textContent = `${cma(amt)} ${ticker} ($${cma(price * amt)})`
     let currencySelect = document.getElementById('currencySelect')
     currencySelect.children[1].childNodes[1].textContent = ticker
 }
 async function loadInventory() {
-    document.getElementById('mainTitle').textContent = "Portfolio"
+    let mainTitle = document.getElementById('mainTitle')
     let inventoryContent = document.getElementById('inventoryView')
-    let assetContent = document.getElementById('assetView')
-    assetContent.style.display = 'none'
+    let assetView = document.getElementById('assetView')
+    let assetContainer = document.getElementById('assetContainer')
+    assetView.style.display = 'none'
     if (inventoryContent.style.display === 'none') {
         inventoryContent.style.display = '';
+    }
+    let inventory = await (await sfetch('api/getInventory', "GET")).json()
+    let assets = Object.entries(inventory.assets).filter(x=>x[1][2]>0)
+    console.log(assets)
+    var newChildren = []
+    var totalAssetValue = 0
+    function update() {
+        mainTitle.textContent = `Portfolio\n$${cma(inventory.balance)} + ($${cma(totalAssetValue)}) = $${cma(inventory.balance + totalAssetValue)}`
+        assetContainer.replaceChildren(...newChildren)
+    }
+    update()
+    for (let i = 0; i < assets.length; i++) {
+        let child = document.createElement("div")
+        sfetch('api/getPrice?id=' + assets[i][0], "GET").then(x=>x.text()).then(price=>{
+            let assetName = document.createElement("div")
+            let assetPrice = document.createElement("div")
+            let userBalance = document.createElement("div")
+            let assetPercent = document.createElement("div")
+            price = Number(price)
+            assetName.textContent = assets[i][1][0] + '/' + assets[i][1][1]
+            assetPrice.textContent = cma(price)
+            totalAssetValue += price * assets[i][1][2]
+            child.replaceChildren(assetName, assetPrice, userBalance, assetPercent)
+            newChildren.push(child)
+            update()
+        })
     }
 }
 async function trade(sell) {
@@ -132,32 +159,19 @@ google.charts.setOnLoadCallback(draw);
 let currentGraph = 0;
 async function draw() {
     let graphElement = document.getElementById('graphElement')
-    let history = await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()
+    let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x=>[new Date(x[0]), x[1]]);
     var data = new google.visualization.DataTable();
-    data.addColumn('number', 'X');
+    data.addColumn('date', 'Date');
     data.addColumn('number', 'Price');
-     data.addRows([
-        [0, 0],   [1, 10],  [2, 23],  [3, 17],  [4, 18],  [5, 9],
-        [6, 11],  [7, 27],  [8, 33],  [9, 40],  [10, 32], [11, 35],
-        [12, 30], [13, 40], [14, 42], [15, 47], [16, 44], [17, 48],
-        [18, 52], [19, 54], [20, 42], [21, 55], [22, 56], [23, 57],
-        [24, 60], [25, 50], [26, 52], [27, 51], [28, 49], [29, 53],
-        [30, 55], [31, 60], [32, 61], [33, 59], [34, 62], [35, 65],
-        [36, 62], [37, 58], [38, 55], [39, 61], [40, 64], [41, 65],
-        [42, 63], [43, 66], [44, 67], [45, 69], [46, 69], [47, 70],
-        [48, 72], [49, 68], [50, 66], [51, 65], [52, 67], [53, 70],
-        [54, 71], [55, 72], [56, 73], [57, 75], [58, 70], [59, 68],
-        [60, 64], [61, Math.random() * 700], [62, 65], [63, 67], [64, 68], [65, 69],
-        [66, 70], [67, 72], [68, 75], [69, 80], [70, 800]
-    ]);
+    data.addRows(history);
     var options = {
         theme:'material',
         focusTarget:'category',
         hAxis: {
-            title: 'Date'
+            title: 'Date/Time'
         },
         vAxis: {
-            title: 'Price'
+            title: 'Price (USD)'
         },
         legend:{
             position:'none'
