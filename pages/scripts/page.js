@@ -1,6 +1,7 @@
 var sidebarPage = 0
 const sidebar = document.getElementById("sidebar")
 const coinPageLimit = 19
+
 function sfetch(url, method, value) {
     return fetch(url, {
         "headers": {
@@ -11,6 +12,7 @@ function sfetch(url, method, value) {
     });
 }
 const cma = (x) => x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
+
 function randStr(length) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -32,15 +34,15 @@ async function updateSidebar(page) {
             if (element.classList.contains('disabled')) {
                 element.classList.toggle('disabled')
             }
-        }else {
+        } else {
             element.textContent = ""
             element.classList.add('disabled');
         }
     }
-    if (sidebarPage <= 0){
+    if (sidebarPage <= 0) {
         pageSelectors[0].classList.add('view');
         pageSelectors[1].classList.add('view');
-    }else {
+    } else {
         if (pageSelectors[0].classList.contains('view')) {
             pageSelectors[0].classList.toggle('view')
             pageSelectors[1].classList.toggle('view')
@@ -49,7 +51,7 @@ async function updateSidebar(page) {
     if (sidebarPage >= coinPageLimit) {
         pageSelectors[5].classList.add('view');
         pageSelectors[6].classList.add('view');
-    }else {
+    } else {
         if (pageSelectors[5].classList.contains('view')) {
             pageSelectors[5].classList.toggle('view')
             pageSelectors[6].classList.toggle('view')
@@ -62,12 +64,12 @@ async function updateSidebar(page) {
         coinElement.childNodes[0].textContent = coins[i].slice(0, 2).join('/');
         coinElement.dataset.id = coins[i][2]
         let price = coinElement.children[0]
-        sfetch(`api/getPrice?id=${coins[i][2]}`, "GET").then(x=>x.text()).then(x=>{
+        sfetch(`api/getPrice?id=${coins[i][2]}`, "GET").then(x => x.text()).then(x => {
             price.textContent = '$' + x
         })
     }
-    sfetch(`api/getPricePercentageChange?ids=${coins.map(x=>x[2]).join(",")}`, "GET").then(x=>x.json()).then(x=>{
-        let elements = Object.fromEntries(Array.from(sidebar.children).map(x=>[x.dataset.id, x]))
+    sfetch(`api/getPricePercentageChange?ids=${coins.map(x=>x[2]).join()}`, "GET").then(x => x.json()).then(x => {
+        let elements = Object.fromEntries(Array.from(sidebar.children).map(x => [x.dataset.id, x]))
         let ranges = ['1h', '24h', '7d', '30d']
         for (const id in x) {
             for (let i = 1; i < 5; i++) {
@@ -76,7 +78,7 @@ async function updateSidebar(page) {
             }
             elements[id].children[1].textContent = `1h: ${x[id].price_change_percentage_1h}%`
             elements[id].children[1].style = x[id].price_change_percentage_1h > 0 ? "color:#16c784;" : "color:#ea3943;"
-            elements[id].children[2].textContent = `1d: ${x[id].price_change_percentage_24h}%`
+            elements[id].children[2].textContent = `24h: ${x[id].price_change_percentage_24h}%`
             elements[id].children[2].style = x[id].price_change_percentage_24h > 0 ? "color:#16c784;" : "color:#ea3943;"
             elements[id].children[3].textContent = `7d: ${x[id].price_change_percentage_7d}%`
             elements[id].children[3].style = x[id].price_change_percentage_7d > 0 ? "color:#16c784;" : "color:#ea3943;"
@@ -117,31 +119,50 @@ async function loadInventory() {
         inventoryContent.style.display = '';
     }
     let inventory = await (await sfetch('api/getInventory', "GET")).json()
-    let assets = Object.entries(inventory.assets).filter(x=>x[1][2]>0)
-    console.log(assets)
+    let assets = Object.entries(inventory.assets).filter(x => x[1][2] > 0)
     var newChildren = []
     var totalAssetValue = 0
+
     function update() {
         mainTitle.textContent = `Portfolio\n$${cma(inventory.balance)} + ($${cma(totalAssetValue)}) = $${cma(inventory.balance + totalAssetValue)}`
         assetContainer.replaceChildren(...newChildren)
     }
     update()
+    let percents = {}
     for (let i = 0; i < assets.length; i++) {
         let child = document.createElement("div")
-        sfetch('api/getPrice?id=' + assets[i][0], "GET").then(x=>x.text()).then(price=>{
-            let assetName = document.createElement("div")
-            let assetPrice = document.createElement("div")
-            let userBalance = document.createElement("div")
-            let assetPercent = document.createElement("div")
+        let assetName = document.createElement("div")
+        let userBalance = document.createElement("div")
+        let assetPrice = document.createElement("div")
+        let assetPercent = document.createElement("div")
+        percents[assets[i][0]] = assetPercent
+        child.replaceChildren(assetName, userBalance, assetPrice, assetPercent)
+        assetName.textContent = assets[i][1][0] + '/' + assets[i][1][1]
+        child.dataset.id = assets[i][0]
+        child.className = 'assets'
+        child.addEventListener("click", () => {
+            updatePage(assets[i][0], assets[i][1][0], assets[i][1][1]);
+        })
+        newChildren.push(child)
+        sfetch('api/getPrice?id=' + assets[i][0], "GET").then(x => x.text()).then(price => {
             price = Number(price)
-            assetName.textContent = assets[i][1][0] + '/' + assets[i][1][1]
-            assetPrice.textContent = cma(price)
+            assetPrice.textContent = 'Price: $' + cma(price)
+            userBalance.textContent = `${cma(assets[i][1][2])} ${assets[i][1][1]} ($${cma(price * assets[i][1][2])})`
             totalAssetValue += price * assets[i][1][2]
-            child.replaceChildren(assetName, assetPrice, userBalance, assetPercent)
-            newChildren.push(child)
             update()
         })
     }
+    sfetch(`api/getPricePercentageChange?ids=${assets.map(x=>x[0])}`, "GET").then(x => x.json()).then(x => {
+        for (k in x) {
+            let percent = percents[k]
+            for (key in x[k]) {
+                let element = document.createElement("div")
+                element.textContent = `${key.match(/_([^_]+)$/)[1]}: ${x[k][key]}%`
+                element.style = x[k][key] > 0 ? "color:#16c784;" : "color:#ea3943;"
+                percent.appendChild(element)
+            }
+        }
+    })
 }
 async function trade(sell) {
     let value = Number(document.getElementById('tradeActionText').value)
@@ -151,39 +172,47 @@ async function trade(sell) {
     updateSidebar(sidebarPage)
     let usd = document.querySelector('input[name="actionCurrency"]:checked').value;
     let amt = usd ? value / await (await sfetch('api/getPrice?id=' + currentPage[0], "GET")).text() : value
-    sfetch('api/' + (sell ? 'sell' : 'buy'), "POST", {amount:amt,assetID:currentPage[0]})
+    sfetch('api/' + (sell ? 'sell' : 'buy'), "POST", {
+        amount: amt,
+        assetID: currentPage[0]
+    })
     updatePage(...currentPage)
 }
-google.charts.load('current', {packages: ['corechart', 'line']});
+google.charts.load('current', {
+    packages: ['corechart', 'line']
+});
 google.charts.setOnLoadCallback(draw);
 let currentGraph = 0;
 async function draw() {
-    let graphElement = document.getElementById('graphElement')
-    let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x=>[new Date(x[0]), x[1]]);
-    var data = new google.visualization.DataTable();
-    data.addColumn('date', 'Date');
-    data.addColumn('number', 'Price');
-    data.addRows(history);
-    var options = {
-        theme:'material',
-        focusTarget:'category',
-        hAxis: {
-            title: 'Date/Time'
-        },
-        vAxis: {
-            title: 'Price (USD)'
-        },
-        legend:{
-            position:'none'
-        },
-        width: graphElement.offsetWidth,
-        height: graphElement.offsetHeight
-    };
-    var chart = new google.visualization.LineChart(graphElement);
-    chart.draw(data, options);
+    try {
+
+        let graphElement = document.getElementById('graphElement')
+        let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x => [new Date(x[0]), x[1]]);
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        data.addColumn('number', 'Price');
+        data.addRows(history);
+        var options = {
+            theme: 'material',
+            focusTarget: 'category',
+            hAxis: {
+                title: 'Date/Time'
+            },
+            vAxis: {
+                title: 'Price (USD)'
+            },
+            legend: {
+                position: 'none'
+            },
+            width: graphElement.offsetWidth,
+            height: graphElement.offsetHeight
+        };
+        var chart = new google.visualization.LineChart(graphElement);
+        chart.draw(data, options);
+    } catch (_) {}
 }
 window.onresize = function() {
-  draw()
+    draw()
 };
 async function setUp() {
     if (!localStorage.getItem("session")) {
@@ -194,25 +223,25 @@ async function setUp() {
         localStorage.setItem("session", document.getElementById("save-input").value);
     });
     updateSidebar(0)
-    Array.from(document.getElementById("sidebarPagination").children).forEach((x, i)=>{
+    Array.from(document.getElementById("sidebarPagination").children).forEach((x, i) => {
         x.addEventListener("click", () => {
             let num = i - 3
             sidebarPage += Math.sign(num) * 10 ** (Math.abs(num) - 1)
             if (sidebarPage < 0) {
                 sidebarPage = 0
-            }else if (sidebarPage > coinPageLimit) {
+            } else if (sidebarPage > coinPageLimit) {
                 sidebarPage = coinPageLimit;
             }
             updateSidebar(sidebarPage)
         })
     });
-    Array.from(sidebar.children).forEach(x=>{
-        x.addEventListener('click', function () {
+    Array.from(sidebar.children).forEach(x => {
+        x.addEventListener('click', function() {
             updatePage(this.dataset.id, ...this.childNodes[0].textContent.split('/'));
         });
     })
-    Array.from(graphSelector.children).forEach((x,i)=>{
-        x.addEventListener('click', function () {
+    Array.from(graphSelector.children).forEach((x, i) => {
+        x.addEventListener('click', function() {
             currentGraph = i
             updatePage(...currentPage);
         });
