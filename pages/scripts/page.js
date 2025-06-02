@@ -1,6 +1,6 @@
 var sidebarPage = 0
 const sidebar = document.getElementById("sidebar")
-const coinPageLimit = 19
+const coinPageLimit = 99
 
 function sfetch(url, method, value) {
     return fetch(url, {
