@@ -89,6 +89,7 @@ async function updateSidebar(page) {
 }
 var currentPage
 async function updatePage(id, name, ticker) {
+    document.getElementById('main').style.overflow = 'hidden'
     currentPage = Array.from(arguments)
     let price = await (await sfetch('api/getPrice?id=' + id, "GET")).text()
     document.getElementById('mainTitle').textContent = name + '/' + ticker + '\n$' + cma(price)
@@ -110,6 +111,7 @@ async function updatePage(id, name, ticker) {
     currencySelect.children[1].childNodes[1].textContent = ticker
 }
 async function loadInventory() {
+    document.getElementById('main').style.overflow = ''
     let mainTitle = document.getElementById('mainTitle')
     let inventoryContent = document.getElementById('inventoryView')
     let assetView = document.getElementById('assetView')
@@ -185,9 +187,17 @@ google.charts.setOnLoadCallback(draw);
 let currentGraph = 0;
 async function draw() {
     try {
-
         let graphElement = document.getElementById('graphElement')
         let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x => [new Date(x[0]), x[1]]);
+        let assetStats = document.getElementById('assetStats')
+        let { min, max, sum, count } = history.reduce((acc, [, y]) => {
+            acc.min = Math.min(acc.min, y);
+            acc.max = Math.max(acc.max, y);
+            acc.sum += y;
+            acc.count++;
+            return acc;
+        }, { min: Infinity, max: -Infinity, sum: 0, count: 0 });
+        assetStats.textContent = `Min: $${cma(min)} Max: $${cma(max)} Mean: $${cma(sum / count)}`
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Date');
         data.addColumn('number', 'Price');
@@ -209,7 +219,7 @@ async function draw() {
         };
         var chart = new google.visualization.LineChart(graphElement);
         chart.draw(data, options);
-    } catch (_) {}
+    } catch (_) {console.log(_)}
 }
 window.onresize = function() {
     draw()

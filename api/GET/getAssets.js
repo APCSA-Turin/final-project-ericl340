@@ -1,4 +1,4 @@
-function getAssets(res, session, query) {
+function getAssets(res, _, query) {
     res.setHeader("Content-Type", "application/json");
     query.page = Number(query.page)
     if (Number.isFinite(query.page)) {
