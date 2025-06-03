@@ -89,6 +89,7 @@ async function updateSidebar(page) {
 }
 var currentPage
 async function updatePage(id, name, ticker) {
+    document.getElementById('loadInventory').style.display = '';
     document.getElementById('main').style.overflow = 'hidden'
     currentPage = Array.from(arguments)
     let price = await (await sfetch('api/getPrice?id=' + id, "GET")).text()
@@ -111,6 +112,7 @@ async function updatePage(id, name, ticker) {
     currencySelect.children[1].childNodes[1].textContent = ticker
 }
 async function loadInventory() {
+    document.getElementById('loadInventory').style.display = 'none';
     document.getElementById('main').style.overflow = ''
     let mainTitle = document.getElementById('mainTitle')
     let inventoryContent = document.getElementById('inventoryView')
