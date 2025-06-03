@@ -16,6 +16,7 @@ var apiIds = {price:[""],percent:[Object.keys(global.assets[0]).join(',')]}
     for (let k = 0; k < ids.length; k++) {
         if (amt++ < 515 && totalLength + ids[k].length <= 8190) {
             apiIds.price[i] += ids[k] + ","
+            totalLength += ids[k].length + 1;
         }else{
             apiIds.price[++i] = ""
             totalLength = 68
