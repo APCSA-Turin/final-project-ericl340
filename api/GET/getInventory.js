@@ -8,10 +8,10 @@ function getInventory(res, session) {
         res.end('{"error":true}')
         return
     }
-    const hash = crypto.createHash('sha512').update(session).digest('hex')
+    const hash = crypto.createHash('sha512').update(session).digest('hex')//finds folder (sha512 hash)
     let filePath = path.join(dataFolder, hash + ".json")
     if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, '{"balance":10000,"assets":{}}')
+        fs.writeFileSync(filePath, '{"balance":10000,"assets":{}}')//sets up default inv
     }
     res.end(fs.readFileSync(filePath))
 }
