@@ -1,8 +1,8 @@
 var sidebarPage = 0
 const sidebar = document.getElementById("sidebar")
-const coinPageLimit = 99
+const coinPageLimit = 99//page limiter
 
-function sfetch(url, method, value) {
+function sfetch(url, method, value) {//wraps fetch function and adds session header
     return fetch(url, {
         "headers": {
             "session": localStorage.getItem("session")
@@ -11,9 +11,9 @@ function sfetch(url, method, value) {
         "method": method,
     });
 }
-const cma = (x) => x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
+const cma = (x) => x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")//regex to format nums
 
-function randStr(length) {
+function randStr(length) {//random string
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     const values = new Uint32Array(length);
@@ -23,7 +23,7 @@ function randStr(length) {
     }
     return result;
 }
-async function updateSidebar(page) {
+async function updateSidebar(page) {//updates the sidebar
     sidebarPage = page
     let pageSelectors = document.getElementById("sidebarPagination").children
     for (let i = -1; i < 2; i++) {
@@ -64,14 +64,14 @@ async function updateSidebar(page) {
         coinElement.childNodes[0].textContent = coins[i].slice(0, 2).join('/');
         coinElement.dataset.id = coins[i][2]
         let price = coinElement.children[0]
-        sfetch(`api/getPrice?id=${coins[i][2]}`, "GET").then(x => x.text()).then(x => {
+        sfetch(`api/getPrice?id=${coins[i][2]}`, "GET").then(x => x.text()).then(x => {//asynchronous to do all the requests at once
             price.textContent = '$' + x
         })
     }
     sfetch(`api/getPricePercentageChange?ids=${coins.map(x=>x[2]).join()}`, "GET").then(x => x.json()).then(x => {
         let elements = Object.fromEntries(Array.from(sidebar.children).map(x => [x.dataset.id, x]))
         let ranges = ['1h', '24h', '7d', '30d']
-        for (const id in x) {
+        for (const id in x) {//logic to set colors and % changes
             for (let i = 1; i < 5; i++) {
                 elements[id].children[i].textContent = `${ranges[i]}: ${x[id]["price_change_percentage_" + ranges[i]]}%`
                 elements[id].children[i].style = x[id]["price_change_percentage_" + ranges[i]] > 0 ? "color:#16c784;" : "color:#ea3943;"
@@ -88,7 +88,7 @@ async function updateSidebar(page) {
     })
 }
 var currentPage
-async function updatePage(id, name, ticker) {
+async function updatePage(id, name, ticker) {//updates main page view
     document.getElementById('loadInventory').style.display = '';
     document.getElementById('main').style.overflow = 'hidden'
     currentPage = Array.from(arguments)
@@ -111,7 +111,7 @@ async function updatePage(id, name, ticker) {
     let currencySelect = document.getElementById('currencySelect')
     currencySelect.children[1].childNodes[1].textContent = ticker
 }
-async function loadInventory() {
+async function loadInventory() {//loads portfolio view
     document.getElementById('loadInventory').style.display = 'none';
     document.getElementById('main').style.overflow = ''
     let mainTitle = document.getElementById('mainTitle')
@@ -162,13 +162,13 @@ async function loadInventory() {
             for (key in x[k]) {
                 let element = document.createElement("div")
                 element.textContent = `${key.match(/_([^_]+)$/)[1]}: ${x[k][key]}%`
-                element.style = x[k][key] > 0 ? "color:#16c784;" : "color:#ea3943;"
+                element.style = x[k][key] > 0 ? "color:#16c784;" : "color:#ea3943;"//color updating
                 percent.appendChild(element)
             }
         }
     })
 }
-async function trade(sell) {
+async function trade(sell) {//buying and selling
     let value = Number(document.getElementById('tradeActionText').value)
     if (!value) {
         return
@@ -187,10 +187,10 @@ google.charts.load('current', {
 });
 google.charts.setOnLoadCallback(draw);
 let currentGraph = 0;
-async function draw() {
+async function draw() {//drawing graph (google charts)
     try {
         let graphElement = document.getElementById('graphElement')
-        let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x => [new Date(x[0]), x[1]]);
+        let history = (await (await sfetch(`api/getPriceHistory?id=${currentPage[0]}&range=${currentGraph}`)).json()).map(x => [new Date(x[0]), x[1]]);// geting hist data
         let assetStats = document.getElementById('assetStats')
         let { min, max, sum, count } = history.reduce((acc, [, y]) => {
             acc.min = Math.min(acc.min, y);
@@ -198,7 +198,7 @@ async function draw() {
             acc.sum += y;
             acc.count++;
             return acc;
-        }, { min: Infinity, max: -Infinity, sum: 0, count: 0 });
+        }, { min: Infinity, max: -Infinity, sum: 0, count: 0 });//getting sum and count and min and max
         assetStats.textContent = `Min: $${cma(min)} Max: $${cma(max)} Mean: $${cma(sum / count)}`
         var data = new google.visualization.DataTable();
         data.addColumn('date', 'Date');
@@ -223,10 +223,10 @@ async function draw() {
         chart.draw(data, options);
     } catch (_) {console.log(_)}
 }
-window.onresize = function() {
+window.onresize = function() {//updates on resize
     draw()
 };
-async function setUp() {
+async function setUp() {//basic main first page view stuff
     if (!localStorage.getItem("session")) {
         localStorage.setItem("session", randStr(96));
     }
@@ -248,12 +248,12 @@ async function setUp() {
         })
     });
     Array.from(sidebar.children).forEach(x => {
-        x.addEventListener('click', function() {
+        x.addEventListener('click', function() {//sets up sidebar clicking
             updatePage(this.dataset.id, ...this.childNodes[0].textContent.split('/'));
         });
     })
     Array.from(graphSelector.children).forEach((x, i) => {
-        x.addEventListener('click', function() {
+        x.addEventListener('click', function() {//sets up graph time range view changing btns
             currentGraph = i
             updatePage(...currentPage);
         });
